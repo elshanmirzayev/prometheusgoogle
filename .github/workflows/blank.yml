@@ -56,7 +56,12 @@ jobs:
 
       - name: Create Kubernetes Secret for Grafana Admin Password
         run: |
-          kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan      
+          if kubectl get secret grafana-admin -n monitoring >/dev/null 2>&1; then
+            echo "Secret grafana-admin already exists, skipping creation."
+          else
+            kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan
+          fi
+
 
       - name: Expose Grafana
         run: |
