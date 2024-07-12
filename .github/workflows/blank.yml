@@ -51,17 +51,26 @@ jobs:
     #   run: |
     #     kubectl get svc prometheus-server -n monitoring
 
+    - name: Add Bitnami Helm repository
+      run: |
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm repo update
+
     - name: Deploy Prometheus
       run: |
-        helm upgrade --install prometheus stable/prometheus -f path/to/prometheus/values.yaml
+        helm upgrade --install prometheus bitnami/prometheus \
+          --set server.service.type=LoadBalancer \
+          --namespace monitoring --create-namespace
 
     - name: Deploy Grafana
       run: |
-        helm upgrade --install grafana stable/grafana -f path/to/grafana/values.yaml
+        helm upgrade --install grafana bitnami/grafana \
+          --set service.type=LoadBalancer \
+          --namespace monitoring --create-namespace
 
-    - name: Expose Grafana
+    - name: Get Prometheus External IP
       run: |
-        kubectl patch svc grafana --type='json' -p '[{"op":"replace","path":"/spec/type","value":"LoadBalancer"}]'
+        kubectl get svc prometheus-server -n monitoring
 
     - name: Get Grafana External IP
       id: grafana-ip
