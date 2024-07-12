@@ -46,27 +46,29 @@ jobs:
             --set server.service.type=LoadBalancer \
             --namespace monitoring --create-namespace
 
+      - name: Wait for Prometheus Deployment
+        run: |
+          kubectl rollout status deployment/prometheus-server -n monitoring --timeout=2m
+
       - name: Deploy Grafana
         run: |
           helm upgrade --install grafana bitnami/grafana \
             --set service.type=LoadBalancer \
+            --set adminUser=admin \
+            --set adminPassword=ZvtZwNRGsFU5nsLOz \
             --namespace monitoring --create-namespace
-
-      - name: Expose Grafana
-        run: |
-          kubectl patch svc grafana -n monitoring --type='json' -p '[{"op":"replace","path":"/spec/type","value":"LoadBalancer"}]'
 
       - name: Wait for Grafana Deployment
         run: |
           kubectl rollout status deployment/grafana -n monitoring --timeout=2m
 
+      - name: Expose Grafana
+        run: |
+          kubectl patch svc grafana -n monitoring --type='json' -p '[{"op":"replace","path":"/spec/type","value":"LoadBalancer"}]'
+
       - name: Delete Existing Grafana Admin Secret (if exists)
         run: |
           kubectl delete secret grafana-admin -n monitoring --ignore-not-found=true
-
-      - name: Create Kubernetes Secret for Grafana Admin Password
-        run: |
-          kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan
 
       - name: Get Prometheus External IP
         run: |
