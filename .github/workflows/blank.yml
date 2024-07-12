@@ -40,6 +40,10 @@ jobs:
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
 
+      - name: Create Kubernetes Namespace
+        run: |
+          kubectl create namespace monitoring || true  # Ignore error if namespace already exists
+
       - name: Create Kubernetes Secret for Grafana Admin Password
         run: |
           if kubectl get secret grafana-admin -n monitoring >/dev/null 2>&1; then
