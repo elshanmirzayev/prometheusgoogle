@@ -40,18 +40,6 @@ jobs:
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
 
-      - name: Create Kubernetes Namespace
-        run: |
-          kubectl create namespace monitoring || true  # Ignore error if namespace already exists
-
-      - name: Create Kubernetes Secret for Grafana Admin Password
-        run: |
-          if kubectl get secret grafana-admin -n monitoring >/dev/null 2>&1; then
-            echo "Secret grafana-admin already exists, skipping creation."
-          else
-            kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan
-          fi
-
       - name: Deploy Prometheus
         run: |
           helm upgrade --install prometheus bitnami/prometheus \
@@ -61,13 +49,24 @@ jobs:
       - name: Deploy Grafana
         run: |
           helm upgrade --install grafana bitnami/grafana \
-            --set adminPassword.secretName=grafana-admin,adminPassword.key=admin-password \
             --set service.type=LoadBalancer \
             --namespace monitoring --create-namespace
 
       - name: Expose Grafana
         run: |
           kubectl patch svc grafana -n monitoring --type='json' -p '[{"op":"replace","path":"/spec/type","value":"LoadBalancer"}]'
+
+      - name: Wait for Grafana Deployment
+        run: |
+          kubectl rollout status deployment/grafana -n monitoring --timeout=2m
+
+      - name: Delete Existing Grafana Admin Secret (if exists)
+        run: |
+          kubectl delete secret grafana-admin -n monitoring --ignore-not-found=true
+
+      - name: Create Kubernetes Secret for Grafana Admin Password
+        run: |
+          kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan
 
       - name: Get Prometheus External IP
         run: |
