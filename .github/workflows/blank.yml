@@ -44,15 +44,26 @@ jobs:
         run: |
           kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan
 
+      - name: Deploy Prometheus
+        run: |
+          helm upgrade --install prometheus bitnami/prometheus \
+            --set server.service.type=LoadBalancer \
+            --namespace monitoring --create-namespace
+
       - name: Deploy Grafana
         run: |
           helm upgrade --install grafana bitnami/grafana \
             --set adminPassword.secretName=grafana-admin,adminPassword.key=admin-password \
+            --set service.type=LoadBalancer \
             --namespace monitoring --create-namespace
 
       - name: Expose Grafana
         run: |
           kubectl patch svc grafana --type='json' -p '[{"op":"replace","path":"/spec/type","value":"LoadBalancer"}]'
+
+      - name: Get Prometheus External IP
+        run: |
+          kubectl get svc prometheus-server -n monitoring
 
       - name: Get Grafana External IP
         id: grafana-ip
