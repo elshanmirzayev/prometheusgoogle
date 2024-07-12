@@ -40,9 +40,6 @@ jobs:
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
 
-      - name: Create Kubernetes Secret for Grafana Admin Password
-        run: |
-          kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan
 
       - name: Deploy Prometheus
         run: |
@@ -56,6 +53,10 @@ jobs:
             --set adminPassword.secretName=grafana-admin,adminPassword.key=admin-password \
             --set service.type=LoadBalancer \
             --namespace monitoring --create-namespace
+
+      - name: Create Kubernetes Secret for Grafana Admin Password
+        run: |
+          kubectl create secret generic grafana-admin -n monitoring --from-literal=admin-password=elshan      
 
       - name: Expose Grafana
         run: |
