@@ -35,30 +35,10 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Add Helm repositories
+      - name: Add Bitnami Helm repository
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
-
-      - name: Check if Monitoring Namespace exists
-        id: check-namespace
-        run: |
-          if kubectl get namespace monitoring >/dev/null 2>&1; then
-            echo "::set-output name=namespace_exists::true"
-          else
-            echo "::set-output name=namespace_exists::false"
-          fi
-
-      - name: Create Monitoring Namespace if not exists
-        if: steps.check-namespace.outputs.namespace_exists != 'true'
-        run: |
-          kubectl create namespace monitoring
-
-      - name: Create Grafana Admin Secret
-        run: |
-          kubectl create secret generic grafana-admin -n monitoring \
-            --from-literal=GF_SECURITY_ADMIN_USER=admin \
-            --from-literal=GF_SECURITY_ADMIN_PASSWORD=elshan
 
       - name: Deploy Prometheus
         run: |
@@ -66,23 +46,13 @@ jobs:
             --set server.service.type=LoadBalancer \
             --namespace monitoring --create-namespace
 
-      - name: Wait for Prometheus Deployment
-        run: |
-          kubectl rollout status deployment/prometheus-server -n monitoring --timeout=2m
-
       - name: Deploy Grafana
         run: |
           helm upgrade --install grafana bitnami/grafana \
             --set service.type=LoadBalancer \
+            --set adminUser=admin \
+            --set adminPassword=elshan \
             --namespace monitoring --create-namespace
-
-      - name: Wait for Grafana Deployment
-        run: |
-          kubectl rollout status deployment/grafana -n monitoring --timeout=2m
-
-      - name: Expose Grafana
-        run: |
-          kubectl patch svc grafana -n monitoring --type='json' -p '[{"op":"replace","path":"/spec/type","value":"LoadBalancer"}]'
 
       - name: Get Prometheus External IP
         run: |
