@@ -50,14 +50,8 @@ jobs:
         run: |
           helm upgrade --install grafana bitnami/grafana \
             --set service.type=LoadBalancer \
-            --set adminUser=admin \
-            --namespace monitoring --create-namespace \
-            --set extraEnv[0].name=GF_SECURITY_ADMIN_USER \
-            --set extraEnv[0].valueFrom.secretKeyRef.name=grafana-admin \
-            --set extraEnv[0].valueFrom.secretKeyRef.key=adminUser \
-            --set extraEnv[1].name=GF_SECURITY_ADMIN_PASSWORD \
-            --set extraEnv[1].valueFrom.secretKeyRef.name=grafana-admin \
-            --set extraEnv[1].valueFrom.secretKeyRef.key=admin-password
+            --set adminUser=admin \ 
+            --set adminPassword=elshan
 
       - name: Get Prometheus External IP
         run: |
