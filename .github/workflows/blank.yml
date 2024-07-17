@@ -50,7 +50,7 @@ jobs:
         run: |
           helm install grafana bitnami/grafana \
             --set service.type=LoadBalancer \
-            --set adminPassword=elshan
+            --namespace monitoring
 
       - name: Get Prometheus External IP
         run: |
