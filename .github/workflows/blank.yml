@@ -48,7 +48,7 @@ jobs:
 
       - name: Deploy Grafana
         run: |
-          helm install grafana grafana/grafana \
+          helm install grafana bitnami/grafana \
             --set service.type=LoadBalancer \
             --set adminPassword=elshan
 
