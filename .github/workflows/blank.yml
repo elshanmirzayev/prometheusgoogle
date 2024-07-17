@@ -68,5 +68,5 @@ jobs:
 
       - name: deploy fluentd
         run: |
-          helm install --name my-release fluentd fluent/fluentd \
+          helm install  fluentd fluent/fluentd \
             --namespace monitoring     
