@@ -64,3 +64,8 @@ jobs:
       - name: Print Grafana IP
         run: |
           echo "Grafana can be accessed at http://${{ steps.grafana-ip.outputs.ip }}/"
+
+      - name: deploy fluentd
+        run: |
+          helm upgrade --install -name my-release kiwigrid/fluentd-elasticsearch \
+            --namespace monitoring     
